@@ -1,29 +1,129 @@
 # ScalaRack
 
-Rack for Scala.
+Rack is a fundamental unit of web.  Its the base upon which all web apps are built.
 
-# Example
+This is Rack:
+
 ```
-object App {
+trait Rack {
+  def call(env: Map[String,Any]) : (Int, Map[String,String], String )
+}
+```
 
-  def main(args: Array[String]) {
-
-    object HelloWorld extends Rack {
-      def call(env: Map[String,String]) : (Int, Map[String,String], String ) =  {
-        (200, Map(), "Hello world")
-      }
-    }
-
-    Rackup map "/" to HelloWorld
-    Rackup start
+To create a rack application, you implement the `call` method, which returns `status, headers, body`
+```
+object HelloWorld extends Rack {
+  def call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
+    (200, Map(), "Hello world")
   }
+}
+```
 
+# Rackup
+
+To run Rack apps, you need a RackServer:
+
+```
+object Server extends RackServer {
+  server map "/helloworld" onto HelloWorld
+}
+Server.start
+```
+
+Navigate to http://localhost:8080/helloworld
+
+# Rack Middleware
+
+Now for the clever part... Rack apps can be chained together.  The following
+bit of middleware will add a Access-Control-Allow-Origin header to the response:
+
+```
+case class CrossOriginSupport(val rack: Rack) extends Rack {
+  def call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
+    val res = rack.call(env)
+    (res._1, res._2 + "Access-Control-Allow-Origin" -> "http://*" , res._2)
+  }
 }
 
+The RackServer mapping becomes:
+
+server map "/helloworld" onto CrossOriginSupport(HelloWorld)
 
 ```
 
 
+# Sinatra
 
-## Credit
-Based on the amazingly simple ruby web framework [Rack](https://github.com/rack)
+Sinatra is a lightweight web framework developed on top of Rack.
+
+## Example
+
+```
+object MyApp extends Sinatra {
+
+  get("/hello") ((c: Context) => {
+    "Hello World"
+  })
+}
+
+object Server extends RackServer {
+  server map "/" onto MyApp
+}
+Server.start
+
+
+
+```
+
+## Scala Server Page support
+
+Sinatra supports [SSP](https://scalate.github.io/scalate/documentation/ssp-reference.html).  SSP is
+a templating language.
+
+```
+get("/hello") ((c: Context) => {
+  ssp("index", "name" -> "Mark")
+})
+```
+
+`ssp(...)` looks in the `resources/views` for `index.ssp` and renders it:
+
+```
+<%@ val name: String %>
+<html>
+    <body>
+        <h1> Hi <%=name%>, welcome to Sinatra</h1>
+    </body>
+</html>
+```
+
+
+## Context
+
+### HTTP Status code
+`c.status = 404`  (The default response status is 200)
+
+### Response Headers
+`c.respHeaders("Content-Type") = "application/json"`
+
+
+
+# Running the demo
+
+```
+sbt run
+
+[info] Set current project to scalarack (in build file:/Users/mark/dev/scalarack/)
+[info] Compiling 1 Scala source to /Users/mark/dev/scalarack/target/scala-2.11/classes...
+[info] Running App
+Rack started... listening for HTTP on /0.0.0.0:8080
+```
+
+[http://localhost:8080/helloworld](http://localhost:8080/helloworld)
+[http://localhost:8080/notfound](http://localhost:8080/notfound)
+[http://localhost:8080/welcome](http://localhost:8080/welcome)
+
+
+## License
+
+Licensed under the [MIT license](https://raw.githubusercontent.com/coder36/scalarack/master/LICENSE).

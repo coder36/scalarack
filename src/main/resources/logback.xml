@@ -1,10 +1,18 @@
 <configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>%d [%thread] %level %logger - %m%n</Pattern>
-        </layout>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%-40.40logger{10}] - %msg%n</pattern>
+        </encoder>
     </appender>
-    <root level="${root-level:-INFO}">
-        <appender-ref ref="CONSOLE"/>
+
+    <logger name="org.eclipse.jetty" level="ERROR" />
+    <logger name="org.fusesource" level="ERROR" />
+
+
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
     </root>
+
 </configuration>
