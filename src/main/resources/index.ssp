@@ -1,0 +1,6 @@
+<%
+    val x = List(1,2,3)
+    for( a <- x ) { %>
+        <%= System.currentTimeMillis()%>
+<%}%>
+

@@ -1,5 +1,6 @@
-import coder36.rack.Rack
-import coder36.rack.Rackup
+import coder36.rack._
+
+
 
 object App {
 
@@ -19,8 +20,28 @@ object App {
       }
     }
 
-    Rackup map "/*" to EnvInfo
-    Rackup start
+
+    object MySinatraApp extends Sinatra {
+
+
+      get("/hello") ((c: Context) => {
+        c.status = 404
+        "hello from sinatra"
+      })
+
+      get("/mark") ((c: Context) => {
+        ssp("index", Map(("name", "Mark")))
+      })
+
+    }
+
+    object Server extends RackServer {
+      val port = 8080
+      server map "/env" onto EnvInfo
+      server map "/*" onto MySinatraApp
+    }
+    Server.start
+
   }
 
 }
