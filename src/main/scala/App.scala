@@ -6,29 +6,87 @@ object App {
 
   def main(args: Array[String]) {
 
-    object HelloWorld extends Rack {
-      def call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
-        (200, Map(), "Hello world")
-      }
-    }
 
-    object MySinatraApp extends Sinatra {
-      get("/notfound") ((c: Context) => {
-        c.status = 404
-        "Not Found"
+    object SinatraAppServer1 extends Sinatra {
+      get("/") ((c: Context) => {
+        """
+          <html>
+            <body>
+              <h1>App1</h1>
+              <form action="/hiddenredirect" method="POST">
+                <input type="hidden" name="test" value="something"/>
+                <button>Sign in</button>
+              </form>
+            </body>
+          </html>
+        """
       })
 
-      get("/welcome") ((c: Context) => {
-        ssp("welcome", Map("name" -> "Mark"))
+      post("/hiddenredirect") ((c: Context) => {
+        """
+          <html>
+            <body>
+              <h1>App1</h1>
+              <h1>hidden redirect to App2</h1>
+              <form id="myform" action="http://localhost:8081/">
+              </form>
+              <script>
+              setTimeout( function() {
+                document.getElementById("myform").submit()
+              },1000 )
+              </script>
+            </body>
+          </html>
+        """
+      })
+
+      get("/redirect") ((c: Context) => {
+        c.status = 302
+        c.respHeaders("Location") = "http://localhost:8081"
+        ""
+      })
+
+      get("/hello/:name") ((c: Context) => {
+        s"""
+            <html>
+             <body>
+               <h1>Hello ${c.params("name")}</h1>
+             </body>
+           </html>
+
+        """
+      })
+
+
+    }
+
+
+    object SinatraAppServer2 extends Sinatra {
+      get("/")((c: Context) => {
+        """
+          <html>
+            <body>
+              <h1>App 2</h1>
+            </body>
+          </html>
+        """
       })
     }
 
-    object Server extends RackServer {
-      val port = 8080
-      server map "/helloworld" onto RequestLogger(HelloWorld)
-      server map "/*" onto MySinatraApp
+
+
+    object server1 extends RackServer {
+      override val port = 8080
+      this map "/*" onto SinatraAppServer1
     }
-    Server.start
+    server1 start
+
+
+    object server2 extends RackServer {
+      override val port = 8081
+      this map "/*" onto SinatraAppServer2
+    }
+    server2 start
 
   }
 

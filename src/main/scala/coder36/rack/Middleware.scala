@@ -12,5 +12,15 @@ object Middleware {
   }
 
 
+  case class FormParser(val rack: Rack ) extends Rack with LazyLogging {
+    def call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
+      val body = env("body").toString
+
+
+      rack.call(env)
+    }
+  }
+
+
 
 }
