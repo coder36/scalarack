@@ -82,11 +82,8 @@ class BaseRack(val rack: Rack, request: HttpServletRequest, response: HttpServle
 
   def headers( request: HttpServletRequest) : Map[String,String] = {
     val hdrs = scala.collection.mutable.Map[String,String]()
-    request.getHeaderNames.map( name => {
-      hdrs(name) = request.getHeader(name)
-    })
+    request.getHeaderNames.foreach( name => hdrs(name) = request.getHeader(name))
     hdrs.toMap
-
   }
 }
 
