@@ -1,8 +1,9 @@
 package coder36.rack
 
+import coder36.rack.Middleware.FormParser
 import coder36.rack.rackTypes.Handler
 import org.fusesource.scalate._
-import scala.collection.mutable.{Map => mMap}
+import scala.collection.mutable.Map
 import scala.util.matching.Regex
 
 package object rackTypes {
@@ -11,22 +12,37 @@ package object rackTypes {
 
 case class Context(env: Map[String,Any],
                    var status: Int = 200,
-                   val respHeaders : mMap[String,String] = mMap( "Content-Type" -> "text/html"),
-                   val params : mMap[String,String] = mMap() )
+                   val respHeaders : Map[String,String] = Map( "Content-Type" -> "text/html"),
+                   val params : Map[String,String] = Map() )
 
-class Sinatra(val engine: TemplateEngine = new TemplateEngine) extends Rack {
 
-  var mathodHandlers = Map[String, mMap[String,Handler ]](
-    "GET" -> mMap[String, Handler](),
-    "POST" -> mMap[String,Handler ](),
-    "PUT" -> mMap[String, Handler ]()
+class Sinatra extends Rack {
+
+  val engine: TemplateEngine = new TemplateEngine
+
+
+  var mathodHandlers = Map[String, Map[String,Handler ]](
+    "GET" -> Map[String, Handler](),
+    "POST" -> Map[String,Handler ](),
+    "PUT" -> Map[String, Handler ]()
   )
 
   def call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
+
+    class RackChainer extends Rack {
+      def call(env: Map[String, Any]): (Int, Map[String, String], String) = _call(env)
+    }
+
+    FormParser( new RackChainer ).call(env)
+  }
+
+
+  def _call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
+
     val c = Context(env = env)
 
     getHandler(c, env ) match {
-      case Some(handler) => (c.status, c.respHeaders.toMap, handler(c))
+      case Some(handler) => (c.status, c.respHeaders, handler(c))
       case _ => (404, Map(), "Not found")
     }
   }
@@ -40,7 +56,7 @@ class Sinatra(val engine: TemplateEngine = new TemplateEngine) extends Rack {
   }
 
   def ssp(name:String, params: Map[String,Any] = Map[String,Any]()) : String = {
-    engine.layout(s"views/${name}.ssp", params)
+    engine.layout(s"views/${name}.ssp", params.toMap)
   }
 
   def getHandler(context: Context, env: Map[String,Any]) : Option[Handler] = {

@@ -6,12 +6,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 
-import scala.concurrent.Future
-import scala.concurrent.{ ExecutionContext, Promise }
-import scala.concurrent.ExecutionContext.Implicits._
-
-import scala.concurrent.Future
 import scala.collection.JavaConversions._
+import scala.collection.mutable.Map
 
 
 
@@ -59,15 +55,17 @@ class RackServlet(val rack: Rack)  extends HttpServlet {
 
 class BaseRack(val rack: Rack, request: HttpServletRequest, response: HttpServletResponse ) extends Rack {
   def call(env: Map[String, Any]): (Int, Map[String, String], String) = {
-    val env = scala.collection.mutable.Map[String,Any]()
+    val env = Map[String,Any]()
     env("REQUEST") = request
     env("RESPONSE") = response
     env("REQUEST_METHOD") = request.getMethod
     env("REQUEST_PATH") = request.getRequestURI
     env("QUERY_STRING") = request.getQueryString
     env("BODY") = body(request)
-    env("HEADERS") = headers(request)
-    rack.call(env.toMap)
+    val hdrs = headers(request)
+    env("HEADERS") = hdrs
+    env("CONTENT_TYPE") = hdrs.getOrElse("Content-Type", "")
+    rack.call(env)
   }
 
   def body(request: HttpServletRequest) : String = {
@@ -81,9 +79,10 @@ class BaseRack(val rack: Rack, request: HttpServletRequest, response: HttpServle
   }
 
   def headers( request: HttpServletRequest) : Map[String,String] = {
-    val hdrs = scala.collection.mutable.Map[String,String]()
+    val hdrs = Map[String,String]()
     request.getHeaderNames.foreach( name => hdrs(name) = request.getHeader(name))
-    hdrs.toMap
+    println(hdrs)
+    hdrs
   }
 }
 

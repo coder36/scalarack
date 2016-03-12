@@ -14,7 +14,9 @@ object App {
             <body>
               <h1>App1</h1>
               <form action="/hiddenredirect" method="POST">
-                <input type="hidden" name="test" value="something"/>
+                <input name="test" value="something"/>
+                <input name="test2" value="blah something+asd"/>
+                <input name="test3" value="whatever"/>
                 <button>Sign in</button>
               </form>
             </body>
@@ -77,7 +79,8 @@ object App {
 
     object server1 extends RackServer {
       override val port = 8080
-      this map "/*" onto SinatraAppServer1
+
+      this map "/*" onto new RequestLogger(SinatraAppServer1)
     }
     server1 start
 
