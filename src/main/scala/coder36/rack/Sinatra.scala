@@ -6,6 +6,7 @@ import org.fusesource.scalate._
 import scala.collection.mutable.Map
 import scala.util.matching.Regex
 
+
 package object rackTypes {
   type Handler = (Context) => String
 }
@@ -27,6 +28,7 @@ class Sinatra extends Rack {
     "PUT" -> Map[String, Handler ]()
   )
 
+
   def call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
 
     class RackChainer extends Rack {
@@ -40,6 +42,8 @@ class Sinatra extends Rack {
   def _call(env: Map[String,Any]) : (Int, Map[String,String], String ) =  {
 
     val c = Context(env = env)
+    val formParams = env("FORM_PARAMS").asInstanceOf[Map[String,String]]
+    formParams.foreach( m => c.params(m._1) = m._2)
 
     getHandler(c, env ) match {
       case Some(handler) => (c.status, c.respHeaders, handler(c))

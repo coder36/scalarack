@@ -27,7 +27,7 @@ object Middleware {
 
         val params = body.split("&").foldLeft(formParams)((acc, v) => {
           val a = v.split("=")
-          acc += a(0) -> a(1)
+          acc += java.net.URLDecoder.decode(a(0), "UTF-8") -> java.net.URLDecoder.decode(a(1), "UTF-8")
         })
       }
       rack.call(env)

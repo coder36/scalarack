@@ -25,10 +25,10 @@ object App {
       })
 
       post("/hiddenredirect") ((c: Context) => {
-        """
+        s"""
           <html>
             <body>
-              <h1>App1</h1>
+              <h1>App1 ${c.params("test")}</h1>
               <h1>hidden redirect to App2</h1>
               <form id="myform" action="http://localhost:8081/">
               </form>
@@ -80,7 +80,7 @@ object App {
     object server1 extends RackServer {
       override val port = 8080
 
-      this map "/*" onto new RequestLogger(SinatraAppServer1)
+      this map "/*" onto SinatraAppServer1
     }
     server1 start
 

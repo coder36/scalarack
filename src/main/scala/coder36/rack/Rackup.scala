@@ -81,7 +81,6 @@ class BaseRack(val rack: Rack, request: HttpServletRequest, response: HttpServle
   def headers( request: HttpServletRequest) : Map[String,String] = {
     val hdrs = Map[String,String]()
     request.getHeaderNames.foreach( name => hdrs(name) = request.getHeader(name))
-    println(hdrs)
     hdrs
   }
 }
