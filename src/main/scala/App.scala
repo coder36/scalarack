@@ -1,6 +1,7 @@
 import coder36.rack._
 import com.typesafe.scalalogging.LazyLogging
 import coder36.rack.Middleware._
+import scala.collection.mutable.Map
 
 object App {
 
@@ -48,16 +49,7 @@ object App {
         ""
       })
 
-      get("/hello/:name") ((c: Context) => {
-        s"""
-            <html>
-             <body>
-               <h1>Hello ${c.params("name")}</h1>
-             </body>
-           </html>
-
-        """
-      })
+      get("/hello/:name") ( (c: Context) => ssp("welcome", Map("name" -> c.params("name")) ))
 
 
     }
@@ -80,14 +72,15 @@ object App {
     object server1 extends RackServer {
       override val port = 8080
 
-      this map "/*" onto SinatraAppServer1
+      this map "/assets" onto Assets()
+      this map "/" onto SinatraAppServer1
     }
     server1 start
 
 
     object server2 extends RackServer {
       override val port = 8081
-      this map "/*" onto SinatraAppServer2
+      this map "/" onto SinatraAppServer2
     }
     server2 start
 

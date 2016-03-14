@@ -51,10 +51,18 @@ server map "/helloworld" onto CrossOriginSupport(HelloWorld)
 
 ```
 
+# Assets
+
+Assets is a basic web server.
+```
+server map "/" onto Assets(root="public")
+```
+By default it serves up content from the resources/public folder.
 
 # Sinatra
 
-Sinatra is a lightweight web framework developed on top of Rack.
+Sinatra is a lightweight web framework developed on top of Rack.  It also has a built in
+static asset server (based on `Asset`).
 
 ## Example
 
@@ -81,12 +89,12 @@ Sinatra supports [SSP](https://scalate.github.io/scalate/documentation/ssp-refer
 a templating language.
 
 ```
-get("/hello") ((c: Context) => {
-  ssp("index", "name" -> "Mark")
+get("/hello/:name") ((c: Context) => {
+  ssp("welcome", Map("name" -> c.params("name")) )
 })
 ```
 
-`ssp(...)` looks in the `resources/views` for `index.ssp` and renders it:
+`ssp(...)` looks in the `resources/views` for `welcome.ssp` and renders it:
 
 ```
 <%@ val name: String %>
